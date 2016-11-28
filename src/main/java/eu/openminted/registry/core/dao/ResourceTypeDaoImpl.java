@@ -2,6 +2,7 @@ package eu.openminted.registry.core.dao;
 
 import java.util.List;
 
+import eu.openminted.registry.core.service.ServiceException;
 import org.hibernate.Criteria;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.stereotype.Repository;
