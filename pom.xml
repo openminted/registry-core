@@ -1,9 +1,8 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>eu.openminted</groupId>
     <artifactId>registry-core</artifactId>
-    <version>1.0.0</version>
+    <version>1.1.0</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -11,6 +10,19 @@
         <artifactId>registry-parent</artifactId>
         <version>1.0.0</version>
     </parent>
+
+    <licenses>
+        <license>
+            <name>Apache License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/openminted/registry-core.git</connection>
+        <developerConnection>scm:git:ssh://github.com/openminted/registry-core.git</developerConnection>
+        <url>https://github.com/openminted/registry-core</url>
+    </scm>
 
     <dependencies>
 
@@ -28,7 +40,7 @@
         <dependency>
             <groupId>eu.openminted</groupId>
             <artifactId>registry-core-api</artifactId>
-            <version>1.0.0</version>
+            <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>eu.openminted.interop</groupId>
@@ -315,6 +327,21 @@
                     <configuration>
                         <warName>RegistryService</warName>
                         <failOnMissingWebXml>false</failOnMissingWebXml>
+                    </configuration>
+                </plugin>
+                <plugin>
+                    <groupId>external.atlassian.jgitflow</groupId>
+                    <artifactId>jgitflow-maven-plugin</artifactId>
+                    <version>1.0-m5.1</version>
+                    <configuration>
+                        <flowInitContext>
+                            <developBranchName>develop</developBranchName>
+                            <versionTagPrefix>v</versionTagPrefix>
+                        </flowInitContext>
+                        <username>USERNAME_FOR_A_GIT_USER</username>
+                        <password>PASSWORD_FOR_A_GIT_USER</password>
+                        <noDeploy>true</noDeploy>
+                        <squash>true</squash>
                     </configuration>
                 </plugin>
             </plugins>
