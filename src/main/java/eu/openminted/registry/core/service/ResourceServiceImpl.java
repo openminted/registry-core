@@ -8,6 +8,7 @@ import eu.openminted.registry.core.domain.Tools;
 import eu.openminted.registry.core.domain.index.IndexedField;
 import eu.openminted.registry.core.index.IndexMapper;
 import eu.openminted.registry.core.index.IndexMapperFactory;
+import eu.openminted.registry.core.validation.ResourceValidator;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -32,6 +33,8 @@ public class ResourceServiceImpl implements ResourceService {
 	private ResourceTypeDao resourceTypeDao;
 	@Autowired
 	private IndexMapperFactory indexMapperFactory;
+	@Autowired
+	private ResourceValidator resourceValidator;
 
 	public ResourceServiceImpl() {
 
@@ -85,29 +88,26 @@ public class ResourceServiceImpl implements ResourceService {
 			resource.setModificationDate(new Date());
 			
 		}
-		
-		
-		resource.setIndexedFields(getIndexedFields(resource));
-		
-		logger.debug("indexed fields: " + resource.getIndexedFields().size());
-		System.out.println("indexed fields: " + resource.getIndexedFields().size());
 
-		if (resource.getIndexedFields() != null)
-			for (IndexedField indexedField:resource.getIndexedFields())
-				indexedField.setResource(resource);
-		
-		String response = checkValid(resource);
-		if(response.equals("OK")){
+
+		Boolean response = checkValid(resource);
+		if(response){
 			resource.setId(UUID.randomUUID().toString());
 
 			try {
+				resource.setIndexedFields(getIndexedFields(resource));
+
+				logger.debug("indexed fields: " + resource.getIndexedFields().size());
+
+				if (resource.getIndexedFields() != null)
+					for (IndexedField indexedField:resource.getIndexedFields())
+						indexedField.setResource(resource);
+
 				resourceDao.addResource(resource);
 			} catch (Exception e) {
 				logger.error("Error saving resource", e);
 				throw new ServiceException(e);
 			}
-		}else{
-			throw new ServiceException(response);
 		}
 		
 		return resource;
@@ -121,11 +121,9 @@ public class ResourceServiceImpl implements ResourceService {
 			for (IndexedField indexedField:resource.getIndexedFields()){
 				indexedField.setResource(resource);
 			}
-		String response = checkValid(resource);
-		if(response.equals("OK")){
+		Boolean response = checkValid(resource);
+		if(response){
 			resourceDao.updateResource(resource);
-		}else{
-			throw new ServiceException(response);
 		}
 
 		return resource;
@@ -165,47 +163,42 @@ public class ResourceServiceImpl implements ResourceService {
 		this.resourceTypeDao = resourceTypeDao;
 	}
 
-	private String checkValid(Resource resource) {
-		String response = "";
+	private Boolean checkValid(Resource resource) {
 		ResourceType resourceType = resourceTypeDao.getResourceType(resource.getResourceType());
 
 		if (resourceType != null) {
 			if (resourceType.getPayloadType().equals(resource.getPayloadFormat())) {
 				if (resourceType.getPayloadType().equals("xml")) {
 					//validate xml
-					String output = Tools.validateXMLSchema(resourceType.getSchema(), resource.getPayload());
-					if (output.equals("true")) {
+					Boolean output = resourceValidator.validateXML(resource.getResourceType(), resource.getPayload());
+					if (output) {
 						resource.setPayload(resource.getPayload());
-						response = "OK";
 					} else {
-						response = "XML and XSD mismatch";
-//						response = output;
+						throw new ServiceException("XML and XSD mismatch");
 					}
 				} else if (resourceType.getPayloadType().equals("json")) {
 
-					//validate json
-					String jsonResponse = Tools.validateJSONSchema(resourceType.getSchema(), resource.getPayload());
-//					String jsonResponse = "true";
-					if (jsonResponse.equals("true")) {
+					Boolean output = resourceValidator.validateJSON(resourceType.getSchema(), resource.getPayload());
+
+					if (output) {
 						resource.setPayload(resource.getPayload());
-						response = "OK";
 					} else {
-						response = "JSON and Schema missmatch";
+						throw new ServiceException("JSON and Schema mismatch");
 					}
 				} else {
 					//payload type not supported
-					response = "type not supported";
+					throw new ServiceException("type not supported");
 				}
 			} else {
 				//payload and schema format do not match, we cant validate
-				response = "payload and schema format are different";
+				throw new ServiceException("payload and schema format are different");
 			}
 		} else {
 			//resource type not found
-			response = "resource type not found";
+			throw new ServiceException("resource type not found");
 		}
 
-		return response;
+		return true;
 	}
 }
 

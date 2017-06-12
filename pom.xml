@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>eu.openminted</groupId>
     <artifactId>registry-core</artifactId>
-    <version>1.1.0</version>
+    <version>1.1.1</version>
     <packaging>jar</packaging>
 
     <parent>
@@ -55,8 +55,8 @@
         </dependency>
         <dependency>
             <groupId>org.apache.activemq</groupId>
-            <artifactId>activemq-all</artifactId>
-            <version>5.10.0</version>
+            <artifactId>activemq-client</artifactId>
+            <version>5.14.4</version>
         </dependency>
         <dependency>
             <groupId>eu.dnetlib</groupId>
